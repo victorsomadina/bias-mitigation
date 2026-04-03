@@ -1,0 +1,71 @@
+References
+
+Abdollahpouri, H., Mansoury, M., Burke, R., & Mobasher, B. (2019). The unfairness of popularity bias in recommendation. arXiv preprint arXiv:1907.13286. https://arxiv.org/abs/1907.13286
+
+Arrieta, A. B., Díaz-Rodríguez, N., Del Ser, J., Bennetot, A., Tabik, S., Barbado, A., García, S., Gil-López, S., Molina, D., Benjamins, R., Chatila, R., & Herrera, F. (2020). Explainable artificial intelligence: Concepts, taxonomies, opportunities and challenges toward responsible AI. Information Fusion, 58, 82–115. https://doi.org/10.1016/j.inffus.2019.12.012
+
+Barocas, S., & Selbst, A. D. (2016). Big data's disparate impact. California Law Review, 104(3), 671–732. https://doi.org/10.15779/Z38BG31
+
+Burke, R. (2017). Multisided fairness for recommendation. arXiv preprint arXiv:1707.00093. https://arxiv.org/abs/1707.00093
+
+Chaney, A. J. B., Stewart, B. M., & Engelhardt, B. E. (2018). How algorithmic confounding in recommendation systems increases homogeneity and decreases utility. In Proceedings of the 12th ACM Conference on Recommender Systems (pp. 224–232). ACM. https://doi.org/10.1145/3240323.3240370
+
+Chen, J., Dong, H., Wang, X., Feng, F., Wang, M., & He, X. (2020). Bias and debias in recommender system: A survey and future directions. arXiv preprint arXiv:2010.03240. https://arxiv.org/abs/2010.03240
+
+Chen, L., Wu, L., Zhang, K., Hong, R., Lian, D., Zhang, Z., Zhou, J., & Wang, M. (2023). Improving recommendation fairness via data augmentation. In Proceedings of the ACM Web Conference 2023 (pp. 1012–1020). ACM. https://doi.org/10.1145/3543507.3583513
+
+Chouldechova, A. (2017). Fair prediction with disparate impact: A study of bias in recidivism prediction instruments. Big Data, 5(2), 153–163. https://doi.org/10.1089/big.2016.0047
+
+Corbett-Davies, S., Pierson, E., Feller, A., Goel, S., & Huq, A. (2017). Algorithmic decision making and the cost of fairness. In Proceedings of the 23rd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (pp. 797–806). ACM. https://doi.org/10.1145/3097983.3098095
+
+Cremonesi, P., Koren, Y., & Turrin, R. (2010). Performance of recommender algorithms on top-N recommendation tasks. In Proceedings of the 4th ACM Conference on Recommender Systems (pp. 39–46). ACM. https://doi.org/10.1145/1864708.1864721
+
+Deldjoo, Y., Bellogin, A., & Di Noia, T. (2023). Fairness in recommender systems: Research landscape and future directions. User Modeling and User-Adapted Interaction, 33, 893–947. https://doi.org/10.1007/s11257-023-09364-z
+
+Ekstrand, M. D., Raj, A., & Pera, M. S. (2022). Fairness in recommender systems. In F. Ricci, L. Rokach, & B. Shapira (Eds.), Recommender systems handbook (3rd ed., pp. 679–707). Springer. https://doi.org/10.1007/978-1-0716-2197-4_18
+
+Ekstrand, M. D., Tian, M., Azpiazu, I. M., Ekstrand, J. D., Anuyah, O., McNeill, D., & Pera, M. S. (2018). All the cool kids, how do they fit in? Popularity and demographic biases in recommender evaluation and effectiveness. In Proceedings of the 1st Conference on Fairness, Accountability and Transparency (pp. 172–186). PMLR. https://proceedings.mlr.press/v81/ekstrand18b.html
+
+European Parliament and Council of the European Union. (2024). Regulation (EU) 2024/1689 — Artificial Intelligence Act. Official Journal of the European Union. https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689
+
+Hardt, M., Price, E., & Srebro, N. (2016). Equality of opportunity in supervised learning. In Advances in Neural Information Processing Systems 29 (pp. 3315–3323). Curran Associates.
+
+Harper, F. M., & Konstan, J. A. (2015). The MovieLens datasets: History and context. ACM Transactions on Interactive Intelligent Systems, 5(4), 1–19. https://doi.org/10.1145/2827872
+
+He, X., Liao, L., Zhang, H., Nie, L., Hu, X., & Chua, T.-S. (2017). Neural collaborative filtering. In Proceedings of the 26th International Conference on World Wide Web (pp. 173–182). ACM. https://doi.org/10.1145/3038912.3052569
+
+Herlocker, J. L., Konstan, J. A., Terveen, L. G., & Riedl, J. T. (2004). Evaluating collaborative filtering recommender systems. ACM Transactions on Information Systems, 22(1), 5–53. https://doi.org/10.1145/963770.963772
+
+Hug, N. (2020). Surprise: A Python library for recommender systems. Journal of Open Source Software, 5(52), 2174. https://doi.org/10.21105/joss.02174
+
+Järvelin, K., & Kekäläinen, J. (2002). Cumulated gain-based evaluation of IR techniques. ACM Transactions on Information Systems, 20(4), 422–446. https://doi.org/10.1145/582415.582418
+
+Jin, D., Wang, L., Zhang, G., Qi, G., Wu, F., Hua, X., & Zheng, Y. (2023). A survey on fairness-aware recommender systems. Information Fusion, 100, 101906. https://doi.org/10.1016/j.inffus.2023.101906
+
+Kamiran, F., & Calders, T. (2012). Data preprocessing techniques for classification without discrimination. Knowledge and Information Systems, 33(1), 1–33. https://doi.org/10.1007/s10115-011-0463-8
+
+Kamishima, T., Akaho, S., Asoh, H., & Sakuma, J. (2012). Fairness-aware classifier with prejudice remover regularizer. In Proceedings of the European Conference on Machine Learning and Knowledge Discovery in Databases (pp. 35–50). Springer. https://doi.org/10.1007/978-3-642-33486-3_3
+
+Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix factorization techniques for recommender systems. Computer, 42(8), 30–37. https://doi.org/10.1109/MC.2009.263
+
+Mansoury, M., Abdollahpouri, H., Pechenizkiy, M., Mobasher, B., & Burke, R. (2020). Feedback loop and bias amplification in recommender systems. In Proceedings of the 29th ACM International Conference on Information and Knowledge Management (pp. 2145–2148). ACM. https://doi.org/10.1145/3340531.3412152
+
+Mehrabi, N., Morstatter, F., Saxena, N., Lerman, K., & Galstyan, A. (2021). A survey on bias and fairness in machine learning. ACM Computing Surveys, 54(6), 1–35. https://doi.org/10.1145/3457607
+
+Mnih, A., & Salakhutdinov, R. (2008). Probabilistic matrix factorization. In Advances in Neural Information Processing Systems 20 (pp. 1257–1264). Curran Associates. https://papers.nips.cc/paper/2007/hash/d9731321ef4e063ebbee79298fa36f56-Abstract.html
+
+Resnick, P., Iacovou, N., Suchak, M., Bergstrom, P., & Riedl, J. (1994). GroupLens: An open architecture for collaborative filtering of netnews. In Proceedings of the 1994 ACM Conference on Computer Supported Cooperative Work (pp. 175–186). ACM. https://doi.org/10.1145/192844.192905
+
+Sarwar, B., Karypis, G., Konstan, J., & Riedl, J. (2001). Item-based collaborative filtering recommendation algorithms. In Proceedings of the 10th International Conference on World Wide Web (pp. 285–295). ACM. https://doi.org/10.1145/371920.372071
+
+Settles, B. (2010). Active learning literature survey (Computer Sciences Technical Report 1648). University of Wisconsin–Madison.
+
+Singh, J., & Joachims, T. (2018). Fairness of exposure in rankings. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (pp. 2219–2228). ACM. https://doi.org/10.1145/3219819.3220088
+
+Steck, H. (2018). Calibrated recommendations. In Proceedings of the 12th ACM Conference on Recommender Systems (pp. 154–162). ACM. https://doi.org/10.1145/3240323.3240372
+
+Suresh, H., & Guttag, J. (2021). A framework for understanding sources of harm throughout the machine learning life cycle. In Proceedings of the 1st ACM Conference on Equity and Access in Algorithms, Mechanisms, and Optimization (pp. 1–9). ACM. https://doi.org/10.1145/3465416.3483305
+
+Yao, S., & Huang, B. (2017). Beyond parity: Fairness objectives for collaborative filtering. In Advances in Neural Information Processing Systems 30 (pp. 2921–2930). Curran Associates. https://arxiv.org/pdf/1705.08804
+
+Zehlike, M., Bonchi, F., Castillo, C., Hajian, S., Megahed, M., & Baeza-Yates, R. (2017). FA*IR: A fair top-k ranking algorithm. In Proceedings of the 26th ACM International Conference on Information and Knowledge Management (pp. 1569–1578). ACM. https://doi.org/10.1145/3132847.3132938

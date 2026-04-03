@@ -1,0 +1,40 @@
+1. Introduction
+
+1.1 Background
+
+Recommender systems have become a defining feature of digital life, shaping what films people watch, what products they purchase, and what content they encounter. At the core of many such systems is collaborative filtering — a technique that generates personalised recommendations by identifying users with similar interaction histories and inferring preferences from their behaviour (Resnick et al., 1994). Collaborative filtering is effective precisely because it learns from large volumes of historical data. However, this strength is also a source of vulnerability: if the data through which the system learns reflects historical inequalities in access, exposure, or participation, the system risks not merely inheriting those inequalities but actively amplifying them.
+
+Research over the past decade has established that recommender systems can produce systematically unequal outcomes across demographic groups (Ekstrand et al., 2018; Yao & Huang, 2017). A system trained on data where one group is underrepresented may learn to produce lower-quality recommendations for that group — not because of any explicit design intent, but as an emergent consequence of optimising for aggregate accuracy on imbalanced data (Barocas & Selbst, 2016). As recommender systems are increasingly deployed in high-stakes contexts — influencing employment, education, financial products, and healthcare content — their capacity to reinforce existing disparities carries genuine social consequence. This concern has gained regulatory weight with the adoption of the EU AI Act (2024) and the right to explanation provisions of GDPR Article 22, both of which impose transparency and accountability obligations on automated decision-making systems.
+
+1.2 Problem Statement
+
+Despite growing recognition of fairness as a design requirement, the dominant approach to fairness evaluation in recommender systems remains output-focused: bias is measured at the final recommendation list and the pipeline that produced it is treated as a black box (Deldjoo et al., 2023). This approach tells practitioners that a disparity exists but not where within the system it originates, at what stage it is most severe, or whether a given intervention is addressing the root cause or simply adjusting the surface output.
+
+This is a substantive gap. Bias in collaborative filtering does not necessarily originate where it is observed. It may enter through demographic imbalances in training data, amplify during similarity computation, re-emerge in neighbourhood formation, and then partially reduce through prediction averaging — arriving at the output as a residual that understates the peak disparity operating internally. Without a framework for measuring bias at each intermediate stage, fairness interventions cannot be matched to the stages at which they are actually needed, and evaluations cannot determine whether a strategy has addressed the cause or merely obscured it.
+
+1.3 Research Questions
+
+This study is guided by four questions. How does demographic bias propagate and evolve across the stages of a user-based collaborative filtering pipeline, and at which stage does amplification peak? Of the three principal mitigation strategies — pre-processing, in-processing, and post-processing — which most effectively reduces demographic bias whilst preserving recommendation quality? And are the observed bias patterns stable over time, or specific to a particular interaction snapshot?
+
+1.4 Aims and Objectives
+
+The aim of this study is to investigate how demographic bias propagates across the collaborative filtering pipeline and to evaluate the effectiveness of stage-targeted mitigation strategies in addressing it. To achieve this, the study implements a six-stage pipeline decomposition framework that measures demographic bias independently at each stage of a user-based collaborative filtering system, identifying where amplification is greatest and characterising the mechanism responsible. It then evaluates pre-processing oversampling, in-processing neighbourhood constraint, and post-processing re-ranking against both fairness and accuracy metrics to determine which intervention produces the most equitable outcome. Finally, it assesses the temporal stability of bias patterns across sequential interaction windows to establish whether the findings generalise beyond a single data snapshot.
+
+1.5 Dissertation Structure
+
+Chapter 2 reviews the literature across four areas: collaborative filtering architectures and bias mechanisms, competing fairness definitions and their mathematical constraints, the three categories of bias mitigation strategy, and existing work on pipeline-level bias analysis. Chapter 3 describes the methodology and implementation, covering the dataset, system architecture, baseline model configuration, fairness metrics, and mitigation strategies. Chapter 4 presents the empirical results, including the baseline performance, stage-level decomposition findings, mitigation strategy outcomes, and temporal stability analysis. Chapter 5 discusses the findings in relation to the research questions and existing literature, acknowledges the study's limitations, proposes directions for future research, and draws the overall conclusion.
+
+
+References
+
+Barocas, S., & Selbst, A. D. (2016). Big data's disparate impact. California Law Review, 104(3), 671–732. https://doi.org/10.15779/Z38BG31
+
+Deldjoo, Y., Bellogin, A., & Di Noia, T. (2023). Fairness in recommender systems: Research landscape and future directions. User Modeling and User-Adapted Interaction, 33, 893–947. https://doi.org/10.1007/s11257-023-09364-z
+
+Ekstrand, M. D., Tian, M., Azpiazu, I. M., Ekstrand, J. D., Anuyah, O., McNeill, D., & Pera, M. S. (2018). All the cool kids, how do they fit in? Popularity and demographic biases in recommender evaluation and effectiveness. In Proceedings of the 1st Conference on Fairness, Accountability and Transparency (pp. 172–186). PMLR. https://proceedings.mlr.press/v81/ekstrand18b.html
+
+European Parliament and Council of the European Union. (2024). Regulation (EU) 2024/1689 — Artificial Intelligence Act. Official Journal of the European Union. https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689
+
+Resnick, P., Iacovou, N., Suchak, M., Bergstrom, P., & Riedl, J. (1994). GroupLens: An open architecture for collaborative filtering of netnews. In Proceedings of the 1994 ACM Conference on Computer Supported Cooperative Work (pp. 175–186). ACM. https://doi.org/10.1145/192844.192905
+
+Yao, S., & Huang, B. (2017). Beyond parity: Fairness objectives for collaborative filtering. In Advances in Neural Information Processing Systems 30 (pp. 2921–2930). Curran Associates. https://arxiv.org/pdf/1705.08804

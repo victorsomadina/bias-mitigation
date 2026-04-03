@@ -1,0 +1,62 @@
+---
+
+3.2 Implementation
+
+3.2.1 System Design
+
+The artefact is a modular Python pipeline designed to measure demographic bias at six discrete stages of a collaborative filtering system and evaluate three mitigation strategies against it. Rather than a single monolithic script, the system is divided into nine scripts, each owning a specific responsibility: data loading, preprocessing, model training, stage artefact extraction, fairness metric computation, accuracy evaluation, pipeline decomposition, mitigation execution, and temporal analysis. This separation means each component can be run, tested, and inspected independently without re-executing the full pipeline.
+
+The entry point is main_experiment.py, which orchestrates the core experimental flow in sequence: load data → preprocess → train the baseline model → extract stage artefacts → compute fairness metrics → evaluate recommendation quality → save results. All outputs are written as JSON files to a dedicated results/ directory, alongside PNG visualisations for key findings. Mitigation experiments are run through separate scripts — mitigation_neighbourhood.py, mitigation_post.py, and preprocessing.py — which receive the trained model object directly, avoiding redundant re-training and ensuring all experiments operate on an identical baseline. A full pipeline diagram is provided in Figure 1.
+
+3.2.2 Key Technical Decisions
+
+The recommender was built using the KNNBasic algorithm from the Surprise library (Hug, 2020), a well-established Python framework for collaborative filtering. User-based KNN with cosine similarity was selected specifically because its internal structure is transparent enough to extract discrete artefacts at each pipeline stage — the similarity matrix, neighbourhood lists, and predictions are all independently accessible. This would not have been possible with a matrix factorisation model, where the recommendation process is compressed into latent vectors that cannot be decomposed in the same way.
+
+Accessing the full user-user similarity matrix required calling the model's compute_similarities() method directly rather than relying on the library's higher-level neighbourhood retrieval methods, which only return pre-filtered lists. Extracting the raw matrix was essential for computing the Stage 2 similarity bias metric across all user pairs rather than only within pre-selected neighbourhoods.
+
+A fixed random seed of 42 was used for the 80/20 train-test split across all experiments, ensuring that every mitigation strategy is evaluated on an identical test set and that results are fully reproducible.
+
+3.2.3 Implementation
+
+The fairness metric for Stage 2 — similarity bias — quantifies demographic homophily by measuring the gap between how often male users appear in male users' top-50 similarity lists versus how often female users appear in female users' top-50 lists. The core computation is straightforward:
+
+--- Listing 1: Similarity bias computation (fairness_metrics.py) ---
+for uid in sim_df.index:
+    g = gender_map.get(uid)
+    top_nbrs = sim_df.loc[uid].drop(uid).nlargest(top_k).index.tolist()
+    n_same = sum(1 for n in top_nbrs if gender_map.get(n) == g)
+    same_frac[g].append(n_same / top_k)
+
+return abs(np.mean(same_frac["M"]) - np.mean(same_frac["F"]))
+---
+
+The in-processing neighbourhood constraint required the most significant custom implementation. The Surprise library computes predictions using its own internal neighbourhood and provides no interface for substituting a custom one. The constrained neighbourhood was therefore built externally — iterating over the similarity matrix to select neighbours by descending similarity whilst enforcing the 30% female representation threshold — and the KNN prediction formula was then reimplemented manually to use it:
+
+--- Listing 2: Weighted prediction with constrained neighbourhood (mitigation_neighbourhood.py) ---
+for raw_nbr in nbr_raw_ids:
+    nbr_rating = user_items[raw_nbr].get(raw_iid)
+    if nbr_rating is None:
+        continue
+    w = sim[inner_uid][inner_nbr]
+    if w <= 0:
+        continue
+    numerator += w * nbr_rating
+    denominator += w
+
+est = numerator / denominator if denominator > 0 else global_mean
+est = max(1.0, min(5.0, est))
+---
+
+This replicates the cosine-weighted average formula used by KNNBasic, falling back to the global mean where no co-rated items exist between a user and their constrained neighbours, and clipping predictions to the valid rating scale. The full implementation is available in Appendix A.
+
+3.2.4 Challenges and How They Were Addressed
+
+Three substantive challenges arose during development.
+
+The first was accessing internal model artefacts from a third-party library. Surprise is designed as an end-to-end recommendation tool and does not expose intermediate pipeline objects through its public API. This was resolved by calling compute_similarities() directly on the trained model object to retrieve the raw similarity matrix, and using get_neighbors() combined with the trainset's to_raw_uid() mapping to reconstruct exact neighbourhood membership.
+
+The second challenge was the inability to inject a custom neighbourhood into Surprise's prediction engine. Since the library handles prediction internally with no hook for substitution, the only viable approach was to reimplement the prediction step from scratch. Whilst this added development complexity, it made the prediction logic fully transparent and directly verifiable against the baseline results.
+
+The third challenge was JSON serialisation of experimental outputs. NumPy data types — including numpy.float64 and numpy.int64 — are not natively handled by Python's json module and raised TypeError exceptions when saving results. This was resolved by writing a recursive _to_serialisable() helper function in main_experiment.py that traverses result dictionaries and converts all NumPy types to native Python equivalents before writing to disk.
+
+This project did not involve user-facing interface design or user research, as the artefact is a research pipeline rather than a deployed application. Evaluation was conducted entirely through quantitative fairness and accuracy metrics on the held-out test set.

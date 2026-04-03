@@ -1,0 +1,175 @@
+4. Results
+
+This chapter presents the empirical findings of the experimental framework described in Chapter 3. Section 4.1 reports baseline system performance across overall and group-level accuracy and ranking metrics. Section 4.2 presents the stage-level bias decomposition, tracing how demographic disparity evolves across the six pipeline stages. Section 4.3 reports the results of each mitigation strategy individually. Section 4.4 provides a comparative analysis of all three strategies against the baseline. Section 4.5 presents the temporal stability analysis across four interaction windows. Section 4.6 summarises the principal findings.
+
+4.1 Baseline System Performance
+
+The baseline user-based collaborative filtering model, configured with cosine similarity and k=50 neighbours, achieved an overall RMSE of 0.974 and MAE of 0.769 on the held-out test set. These figures are consistent with published evaluations of KNNBasic on MovieLens 1M and confirm that the baseline model operates within an acceptable predictive accuracy range prior to any fairness intervention (Herlocker et al., 2004).
+
+Table 1 reports group-level prediction accuracy. Male users produced an RMSE of 0.968 and MAE of 0.765 across 150,796 test ratings, whilst female users produced an RMSE of 0.992 and MAE of 0.782 across 49,246 test ratings. The resulting RMSE gap of 0.024 indicates that the model produces measurably less accurate predictions for female users. This disparity arises without any explicit use of demographic attributes during training, confirming the pattern identified by Yao and Huang (2017) that optimising for overall predictive accuracy can nonetheless produce accuracy disparities across demographic groups.
+
+Table 1: Baseline group-level prediction accuracy
+--------------------------------------------------
+Group    RMSE     MAE      Test Ratings
+Male     0.968    0.765    150,796
+Female   0.992    0.782    49,246
+Gap      0.024    0.017    —
+--------------------------------------------------
+
+Table 2 reports group-level ranking performance at k=10. Male users achieved Precision@10 of 0.675, Recall@10 of 0.617, and NDCG@10 of 0.927 across 4,331 users. Female users achieved Precision@10 of 0.642, Recall@10 of 0.667, and NDCG@10 of 0.916 across 1,709 users. Male users therefore received higher precision and ranking quality, whilst female users demonstrated higher recall, suggesting that female users' relevant items were retrieved in greater proportional volume but ranked less precisely. The demographic parity gap at Stage 6 was 0.027 and the equal opportunity gap was 0.017, indicating a modest but consistent output-level exposure disparity.
+
+Table 2: Baseline group-level ranking performance (top-10)
+-----------------------------------------------------------
+Group    Precision@10    Recall@10    NDCG@10    N Users
+Male     0.675           0.617        0.927      4,331
+Female   0.642           0.667        0.916      1,709
+Gap      0.033           —            0.011      —
+-----------------------------------------------------------
+
+Taken in isolation, these output-level disparities might suggest the system is approaching fairness, with gaps below 0.03 across demographic parity and equal opportunity. However, this interpretation depends entirely on measuring only at the final output. The following section demonstrates that measuring at the output alone substantially underestimates the degree of demographic disparity operating within the pipeline.
+
+4.2 Stage-Level Bias Decomposition
+
+The six-stage pipeline decomposition reveals that bias does not accumulate linearly from input to output. Instead, it amplifies sharply at specific algorithmic stages, reduces at others, and partially re-amplifies before producing the final recommendations. Table 3 reports the bias score at each stage alongside the inter-stage delta.
+
+Table 3: Bias scores and inter-stage deltas across the six-stage pipeline
+--------------------------------------------------------------------------
+Stage                   Bias Score    Delta from Previous Stage
+S1: Input               0.180         —
+S2: Similarity          0.309         +0.129 (amplification)
+S3: Top-Similar         0.042         −0.267 (reduction)
+S4: Neighbourhood       0.083         +0.041 (amplification)
+S5: Prediction          0.024         −0.059 (reduction)
+S6: Ranking             0.027         +0.003 (amplification)
+--------------------------------------------------------------------------
+
+Stage 1 captures the demographic composition of the input data. The activity gap of 0.180 reflects the fact that male users contributed an average of 174.04 ratings whilst female users contributed an average of 144.20 ratings — a raw difference of approximately 30 ratings per user across 1,000,209 total interactions. Male users also engaged with a slightly wider item catalogue, covering 3,671 unique films compared to 3,481 for female users, producing an item coverage gap of 0.051. These imbalances are consistent with the demographic composition of the dataset: 4,331 male users (71.7%) versus 1,709 female users (28.3%). This input-level disparity is not an artefact of experimental design but a structural characteristic of the dataset, reflecting historical usage patterns as discussed in Section 2.1.
+
+Stage 2 is the principal amplification point in the pipeline, producing a bias score of 0.309 — the highest recorded across all six stages and a delta of +0.129 from Stage 1. This amplification reflects demographic homophily in the cosine similarity computation: because male users share denser and more overlapping interaction histories, they exhibit systematically higher cosine similarity to one another than to female users, and the converse applies in kind for female users. The result is that the similarity space is structured along demographic lines before any neighbourhood selection occurs. This finding is consistent with Mansoury et al. (2020), who demonstrate that bias is amplified through algorithmic mechanisms rather than merely inherited from training data, and with Abdollahpouri et al. (2019), who show that density disparities in interaction data translate into disproportionate similarity scores. The identification of Stage 2 as the bottleneck stage represents the key diagnostic finding of this study: an output-only evaluation would register a disparity of 0.027, whereas the pipeline decomposition reveals a peak disparity of 0.309 operating internally.
+
+Stage 3 produces a substantial reduction to a bias score of 0.042, a delta of −0.267. This reduction arises because top-N similarity selection retrieves each user's 50 most similar counterparts regardless of demographic group; the top-N filter partially dismantles the demographic clustering present in the full similarity matrix by selecting on the basis of similarity magnitude rather than group membership. This natural correction is partial, as the Stage 3 lists still reflect the similarity scores computed at Stage 2.
+
+Stage 4 records a re-amplification to 0.083, a delta of +0.041. The KNN neighbourhood formation algorithm selects operationally active neighbours from the Stage 3 candidate lists, applying the minimum support threshold and resolving ties. This selection process reintroduces demographic clustering because active users with sufficient co-rated items disproportionately belong to the majority group, producing a neighbourhood composition gap consistent with the dominance of male users in dense interaction regions. This finding provides empirical support for Suresh and Guttag's (2021) theoretical argument that bias can re-emerge at multiple independent points within an algorithmic pipeline.
+
+Stage 5 reduces bias to 0.024 through the prediction aggregation process. When the model averages the ratings of neighbourhood members to generate predictions, the demographic composition of the neighbourhood is partially averaged out, reducing the disparity in predicted rating quality between male and female users. The RMSE gap between male (0.968) and female (0.992) users reported in Section 4.1 corresponds directly to this Stage 5 measurement.
+
+Stage 6 records a marginal increase to 0.027, a delta of +0.003. Demographic parity gap measurement at the final recommendation output reflects the cumulative effect of all prior stages. The slight increase from Stage 5 arises from the thresholding and ranking procedures applied to generate top-10 lists from continuous predictions, which reintroduce a small degree of exposure disparity. The equal opportunity gap at this stage was 0.017, indicating that female users with genuinely relevant items are marginally less likely to have those items retrieved within the top-10 recommendations.
+
+The decomposition demonstrates a two-peak bias profile: a dominant peak at Stage 2 and a secondary peak at Stage 4, separated by natural reduction mechanisms at Stages 3 and 5. This profile implies that fairness interventions targeted at the final output are operating downstream of both amplification points, limiting their capacity to address root causes. The bottleneck analysis identifies Stage 2 as the primary target for intervention, as it accounts for the largest single amplification in the pipeline.
+
+4.3 Mitigation Strategy Results
+
+4.3.1 Pre-processing: Oversampling
+
+The pre-processing strategy applied oversampling of female user ratings by a factor of two prior to model training, producing an augmented training dataset with a higher proportion of female interactions. Table 4 reports fairness and accuracy outcomes.
+
+Table 4: Pre-processing (oversampling) results versus baseline
+---------------------------------------------------------------
+Metric              Baseline    Pre-processing    Change
+DP Gap              0.027       0.091             +0.064 (worse)
+RMSE Gap            0.024       0.090             +0.066 (worse)
+Overall RMSE        0.974       0.939             −0.035 (better)
+NDCG@10             0.924       0.939             +0.015 (better)
+---------------------------------------------------------------
+
+The oversampling intervention produced a counterintuitive result: both the demographic parity gap and the RMSE gap worsened substantially relative to the baseline, increasing by 235% and 275% respectively. The DP gap rose from 0.027 to 0.091, and the RMSE gap rose from 0.024 to 0.090, indicating that the system became significantly less fair in terms of exposure and prediction accuracy equity following the intervention. Simultaneously, overall accuracy improved: overall RMSE fell from 0.974 to 0.939 and NDCG@10 rose from 0.924 to 0.939.
+
+This pattern suggests that duplicating female ratings at Stage 1 altered the training distribution in a way that allowed the model to improve its overall predictive fit, but did so by more accurately representing the majority group's interaction patterns rather than genuinely reducing demographic disparity. Because oversampling reproduces existing female ratings without introducing new preference information, it amplifies the influence of female interaction patterns at Stage 2 similarity computation, but the predominantly male interaction space remains more densely connected. The result is a widened similarity gap rather than a reduced one. This finding provides direct empirical confirmation of Ekstrand et al.'s (2018) warning that simple rating duplication cannot address imbalances that originate in the structural properties of the similarity computation, and extends that claim by quantifying the degree to which oversampling can actively worsen group-level fairness metrics whilst improving aggregate performance.
+
+4.3.2 In-processing: Constrained Neighbourhood Selection
+
+The in-processing strategy enforced a minimum female representation threshold of 30% within each user's k-neighbourhood, directly targeting the Stage 4 amplification point identified in the pipeline decomposition. Table 5 reports outcomes.
+
+Table 5: In-processing (neighbourhood constraint) results versus baseline
+--------------------------------------------------------------------------
+Metric                          Baseline    In-processing    Change
+DP Gap                          0.027       0.017            −0.010 (better)
+RMSE Gap                        0.024       0.005            −0.019 (better)
+Neighbourhood Composition Gap   0.083       0.017            −0.066 (better)
+Overall RMSE                    0.974       1.187            +0.213 (worse)
+NDCG@10                         0.924       0.924            no change
+--------------------------------------------------------------------------
+
+The in-processing strategy produced the largest fairness improvement of the three approaches. The demographic parity gap reduced from 0.027 to 0.017 (a 37% reduction), the RMSE gap reduced from 0.024 to 0.005 (a 79% reduction), and the neighbourhood composition gap reduced from 0.083 to 0.017 (a 79% reduction). These reductions confirm that directly constraining the neighbourhood composition at Stage 4 propagates fairness improvements forward into Stage 5 predictions: when the neighbourhood includes a more demographically representative set of similar users, the resulting predictions are more equally accurate across groups.
+
+The accuracy cost of this intervention is, however, substantial. Overall RMSE increased from 0.974 to 1.187, a deterioration of 0.213 (21.9%). This cost arises directly from the neighbourhood constraint: by mandating a minimum female representation, the algorithm is required in some cases to include female neighbours who are less similar to the target user than the displaced male neighbours. The trade-off between fairness and accuracy is therefore not incidental but mechanistically necessary — enforcing group representation in the neighbourhood inevitably replaces some high-similarity neighbours with lower-similarity ones. This accuracy–fairness trade-off is consistent with the mathematical constraints described by Corbett-Davies et al. (2017) and Yao and Huang (2017), who demonstrate that when group base rates differ, enforcing parity constraints must produce accuracy penalties. NDCG@10 remained unchanged at 0.924, suggesting that whilst prediction accuracy was affected, the ranking quality of recommendations was preserved.
+
+4.3.3 Post-processing: Demographic Parity Re-ranking
+
+The post-processing strategy applied demographic parity re-ranking to final recommendation lists, classifying items by gender-affinity based on the composition of their rater pool and reconstructing lists to achieve a 50% female-affinity item proportion. Table 6 reports outcomes.
+
+Table 6: Post-processing (re-ranking) results versus baseline
+-------------------------------------------------------------
+Metric         Baseline    Post-processing    Change
+DP Gap         0.027       0.027              0.000 (no change)
+RMSE Gap       0.024       0.024              0.000 (no change)
+Overall RMSE   0.974       0.974              0.000 (no change)
+NDCG@10        0.924       0.918              −0.005 (worse)
+-------------------------------------------------------------
+
+The post-processing strategy produced no reduction in any fairness metric. Both the demographic parity gap and the RMSE gap remained identical to the baseline at 0.027 and 0.024 respectively. The intervention therefore achieved zero bias reduction whilst introducing a modest NDCG@10 cost of 0.005 (a 0.58% decline), reflecting the slight disruption to ranking quality caused by the re-ordering of recommendation lists.
+
+This null result is explained by the pipeline decomposition findings in Section 4.2. The demographic disparity registered at Stage 6 is not generated at the output stage but is the residual of bias dynamics operating at Stages 2 and 4. Re-ordering the final list alters item presentation but cannot alter the predicted ratings from which those lists are derived, nor can it alter the similarity structure or neighbourhood composition that produced those predictions. The re-ranking therefore repositions items without addressing the mechanisms that generated the disparity, consistent with Singh and Joachims' (2018) observation that post-processing exposure adjustments are practically flexible but cannot correct bias embedded in learned model parameters. The finding that the DP gap is entirely unchanged after re-ranking provides direct empirical evidence that output-level intervention is insufficient when the causal source of disparity lies at intermediate pipeline stages.
+
+4.4 Comparative Mitigation Analysis
+
+Table 7 consolidates the results of all three mitigation strategies against the baseline to enable direct comparison.
+
+Table 7: Consolidated mitigation comparison
+-------------------------------------------
+Strategy          DP Gap    RMSE Gap    Overall RMSE    NDCG@10
+Baseline          0.027     0.024       0.974           0.924
+Pre-processing    0.091     0.090       0.939           0.939
+In-processing     0.017     0.005       1.187           0.924
+Post-processing   0.027     0.024       0.974           0.918
+-------------------------------------------
+
+The comparative results reveal a clear pattern: each strategy's effectiveness is determined by whether it intervenes at or upstream of the bias amplification stages identified in the decomposition. In-processing targets Stage 4 directly and produces the largest fairness improvements, at the cost of overall prediction accuracy. Pre-processing targets Stage 1 but, because it does not address the structural similarity dynamics at Stage 2, it fails to reduce — and in fact amplifies — demographic disparity whilst improving aggregate accuracy. Post-processing targets Stage 6, downstream of both amplification points, and produces no measurable fairness benefit.
+
+The accuracy–fairness trade-off is not symmetric across strategies. In-processing trades substantial RMSE degradation for meaningful fairness improvement, representing a purposeful exchange that is controllable through adjustment of the neighbourhood constraint threshold. Pre-processing achieves accuracy improvements alongside fairness deterioration, representing an unintended adverse effect that produces a worse outcome than the unmitigated baseline on both fairness dimensions simultaneously. Post-processing imposes a small accuracy cost without any corresponding fairness benefit.
+
+These findings indicate that, in a collaborative filtering pipeline with the bias profile identified in Section 4.2, pre-processing and post-processing interventions applied in isolation are insufficient to produce equitable outcomes. Stage-targeted in-processing represents the most effective single-strategy approach, and the pipeline decomposition framework is necessary to identify which stage warrants intervention.
+
+4.5 Temporal Stability of Bias
+
+Temporal analysis across four sequential interaction windows confirms that the bias profile identified in Section 4.2 is structurally stable rather than an artefact of a specific interaction period. Table 8 reports bias scores by stage across windows W1 to W4.
+
+Table 8: Bias scores by stage across four temporal windows
+-----------------------------------------------------------
+Stage           W1      W2      W3      W4
+S1: Input       0.183   0.167   0.182   0.180
+S2: Similarity  0.324   0.405   0.329   0.336
+S3: Top-Similar 0.041   0.007   0.033   0.021
+S4: Neighbourhood 0.069 0.036   0.072   0.077
+S5: Prediction  0.036   0.028   0.030   0.033
+S6: Ranking     0.027   0.031   0.029   0.027
+-----------------------------------------------------------
+
+Stage 2 consistently registers the highest bias score in every window, ranging from 0.324 in W1 to 0.405 in W2, confirming its status as the dominant amplification stage regardless of which interaction period is analysed. Stage 1 input activity bias is stable across all windows, fluctuating narrowly between 0.167 and 0.183, consistent with a structural demographic imbalance that is not resolved as user interaction volume grows. Stages 5 and 6 remain low and stable across all windows, confirming that the output-level metrics that most existing evaluation frameworks measure are consistently the least informative points in the pipeline.
+
+Regression analysis of temporal trends produced non-significant slopes for all six stages. The strongest candidate for a trend was Stage 4 (slope = +0.006, R² = 0.179, p = 0.577), which suggests a marginal tendency for neighbourhood composition bias to increase over time as the interaction density gap between male and female users potentially widens through feedback effects. However, the p-value of 0.577 indicates this slope is not statistically distinguishable from zero within the available four-window sample, and the finding should be interpreted with caution. All other stages returned p-values above 0.69, indicating no temporal drift.
+
+The temporal stability finding has an important implication for the study's generalisability: the bias patterns observed in the full-dataset experiments are not idiosyncratic to a particular interaction snapshot but reflect persistent structural properties of the data and algorithm that are present throughout the observation period. Interventions that fail to address these structural properties — such as the post-processing strategy in Section 4.3.3 — cannot be expected to produce fairness improvements in any temporal window.
+
+4.6 Summary
+
+The results of this chapter establish four principal findings. First, the baseline system produces modest output-level demographic disparities (DP gap of 0.027, RMSE gap of 0.024) that, measured in isolation, might suggest the system is approaching equitable performance. Second, the six-stage pipeline decomposition reveals that these output-level measurements substantially understate the degree of internal bias: Stage 2 similarity computation amplifies input-level disparity from 0.180 to 0.309, representing the dominant bias mechanism in the pipeline, with secondary amplification at Stage 4 neighbourhood formation (0.083). Third, the effectiveness of mitigation strategies is determined by their alignment with the amplification stages identified in the decomposition: in-processing neighbourhood constraint, which targets Stage 4 directly, produced the largest fairness improvements (DP gap reduced to 0.017, RMSE gap to 0.005), whilst pre-processing oversampling counterintuitively worsened both fairness metrics, and post-processing re-ranking produced no measurable effect. Fourth, all bias patterns are temporally stable across four interaction windows, confirming that the observed disparities are structural rather than incidental. These findings are interpreted and contextualised in relation to the existing literature in Chapter 5.
+
+
+References
+
+Abdollahpouri, H., Mansoury, M., Burke, R., & Mobasher, B. (2019). The unfairness of popularity bias in recommendation. arXiv preprint arXiv:1907.13286. https://arxiv.org/abs/1907.13286
+
+Corbett-Davies, S., Pierson, E., Feller, A., Goel, S., & Huq, A. (2017). Algorithmic decision making and the cost of fairness. In Proceedings of the 23rd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (pp. 797–806). ACM. https://doi.org/10.1145/3097983.3098095
+
+Ekstrand, M. D., Tian, M., Azpiazu, I. M., Ekstrand, J. D., Anuyah, O., McNeill, D., & Pera, M. S. (2018). All the cool kids, how do they fit in? Popularity and demographic biases in recommender evaluation and effectiveness. In Proceedings of the 1st Conference on Fairness, Accountability and Transparency (pp. 172–186). PMLR. https://proceedings.mlr.press/v81/ekstrand18b.html
+
+Herlocker, J. L., Konstan, J. A., Terveen, L. G., & Riedl, T. (2004). Evaluating collaborative filtering recommender systems. ACM Transactions on Information Systems, 22(1), 5–53. https://doi.org/10.1145/963770.963772
+
+Mansoury, M., Abdollahpouri, H., Pechenizkiy, M., Mobasher, B., & Burke, R. (2020). Feedback loop and bias amplification in recommender systems. In Proceedings of the 29th ACM International Conference on Information and Knowledge Management (pp. 2145–2148). ACM. https://doi.org/10.1145/3340531.3412152
+
+Singh, J., & Joachims, T. (2018). Fairness of exposure in rankings. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (pp. 2219–2228). ACM. https://doi.org/10.1145/3219819.3220088
+
+Suresh, H., & Guttag, J. (2021). A framework for understanding sources of harm throughout the machine learning life cycle. In Proceedings of the 1st ACM Conference on Equity and Access in Algorithms, Mechanisms, and Optimization (pp. 1–9). ACM. https://doi.org/10.1145/3465416.3483305
+
+Yao, S., & Huang, B. (2017). Beyond parity: Fairness objectives for collaborative filtering. In Advances in Neural Information Processing Systems 30 (pp. 2921–2930). Curran Associates. https://arxiv.org/pdf/1705.08804

@@ -59,7 +59,6 @@ def load_items(data_dir):
         encoding="latin-1",
     )
     df["item_id"] = df["item_id"].astype(int)
-    # Expand pipe-separated genres into binary columns
     for genre in GENRES:
         df[genre] = df["genres"].str.contains(genre, regex=False).astype(int)
     return df

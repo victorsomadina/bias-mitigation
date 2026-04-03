@@ -13,6 +13,8 @@ def build_surprise_dataset(ratings_df):
 
 def train_baseline(ratings_df, k=50, test_size=0.2, random_state=42):
     """
+    # There is what we call elbow method.
+    euclidean distance
     Train user-based KNN (cosine) on ratings_df.
 
     Returns:
