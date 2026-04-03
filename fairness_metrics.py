@@ -42,7 +42,7 @@ def similarity_bias(sim_df, gender_map):
         g = gender_map.get(uid)
         if g not in ("M", "F"):
             continue
-        row = sim_df.loc[uid].drop(uid)           # exclude self
+        row = sim_df.loc[uid].drop(uid)
         top_nbrs = row.nlargest(top_k).index.tolist()
         n_same = sum(1 for n in top_nbrs if gender_map.get(n) == g)
         same_frac[g].append(n_same / top_k)

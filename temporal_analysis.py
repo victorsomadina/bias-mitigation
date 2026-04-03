@@ -5,7 +5,6 @@ trains CF sequentially on each, runs pipeline decomposition, and measures
 whether bias amplifies over time.
 
 """
-
 import os
 import json
 import numpy as np
@@ -87,7 +86,6 @@ def run():
             slopes[stage_label] = {"slope": float("nan"), "r_squared": float("nan"), "p_value": float("nan")}
 
     # ── Print slope summary
-    print("\n  === Temporal Amplification Slopes ===")
     for label, s in slopes.items():
         direction = "↑ growing" if s["slope"] > 0 else "↓ shrinking"
         print(f"  {label:<22} slope={s['slope']:+.5f}  R²={s['r_squared']:.3f}  {direction}")

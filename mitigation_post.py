@@ -17,7 +17,6 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
 from data_loader import load_all
 from baseline_cf import train_baseline, get_top_n
 from stage_extraction import extract_stage5_predictions, extract_stage6_ranking

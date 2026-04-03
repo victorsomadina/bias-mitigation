@@ -1,0 +1,56 @@
+3. Methodology
+
+This chapter describes the experimental framework used to investigate demographic bias across the collaborative filtering pipeline, covering research design, dataset selection, system architecture, model configuration, fairness metrics, mitigation strategies, and ethical considerations.
+
+3.1 Research Design
+
+This study adopts a quantitative experimental design, decomposing the collaborative filtering pipeline into six discrete stages and applying fairness metrics independently at each stage. Rather than treating the recommender as a single black-box unit, the design enables controlled measurement of how demographic disparity evolves at each algorithmic step. Dataset, model parameters, and evaluation criteria remain constant across all experiments, enabling direct comparison of baseline and mitigated system behaviour (Settles, 2010).
+
+3.2 Dataset
+
+The MovieLens 1M dataset (Harper & Konstan, 2015) was selected as the experimental benchmark. It comprises 1,000,209 explicit ratings on a five-point scale, contributed by 6,040 users across 3,883 films, with 95.5% of the user-item matrix empty. Demographic attributes include gender, age, and occupation, with gender distributed as 4,331 male and 1,709 female users — a 71.7% to 28.3% imbalance that is itself a subject of investigation rather than a confound to be eliminated. MovieLens 1M was chosen over alternatives because it provides explicit demographic attributes necessary for group-level fairness analysis, offers sufficient interaction density for stable similarity computation, and is a widely used benchmark enabling comparison with existing literature (Ekstrand et al., 2018). Acknowledged limitations include binary self-reported gender representation and data collected between 2000 and 2003, which reflects a historical rather than contemporary platform context.
+
+3.3 System Architecture
+
+The experimental system is implemented as a modular Python pipeline of nine scripts. The pipeline is orchestrated by main_experiment.py, which sequentially loads data, trains the baseline model, extracts stage artefacts, computes fairness metrics, evaluates recommendation quality, and saves results. Mitigation experiments, mechanism tests, and temporal analysis are executed by independent scripts, allowing each component to be run and verified in isolation. The six-stage decomposition follows the natural execution order of a user-based collaborative filtering system: Stage 1 captures input data composition; Stage 2 extracts the full user-user cosine similarity matrix; Stage 3 identifies the top-50 most similar users per user; Stage 4 captures the operational KNN neighbourhood; Stage 5 records predicted ratings against ground truth; Stage 6 produces the final top-10 recommendation lists. Fairness metrics are applied independently at each stage. The complete codebase is available on GitHub at github.com/victorsomadina/bias-mitigation and in Appendix A.
+
+3.4 Baseline Collaborative Filtering Model
+
+The baseline recommender uses the KNNBasic algorithm from the Surprise library (Hug, 2020), configured as a user-based collaborative filter with cosine similarity and k=50 neighbours. User-based KNN was chosen over matrix factorisation because its transparent neighbourhood structure allows the six discrete pipeline stages to be extracted and measured independently — a capability latent factor models do not provide (Koren et al., 2009). This choice also aligns with Explainable AI principles and GDPR Article 22's requirement for meaningful explanation of automated decisions, as recommendations are traceable to specific similar users (Arrieta et al., 2020). Cosine similarity was preferred over Pearson correlation for its robustness in sparse environments: it treats unrated items as zero, handles low co-rated item counts more reliably, and produces similarity values bounded between 0 and 1 that serve directly as prediction weights (Sarwar et al., 2001). The neighbourhood size k=50 is a widely validated configuration in the collaborative filtering literature (Herlocker et al., 2004), constituting 0.8% of the 6,040-user population — sufficient for meaningful demographic composition analysis whilst reflecting genuine similarity. The dataset was partitioned into an 80% training set and 20% held-out test set using a fixed random seed of 42, ensuring full reproducibility.
+
+3.5 Fairness Metrics and Evaluation
+
+A stage-appropriate fairness metric is applied at each pipeline stage. At Stage 1, the input activity gap measures the normalised difference in average ratings per user between male and female groups. At Stage 2, similarity bias quantifies demographic homophily by comparing the fraction of same-gender users in each group's top-50 similarity lists. At Stages 3 and 4, composition gaps measure deviation of neighbourhood gender composition from population proportions. At Stage 5, the prediction RMSE gap captures accuracy disparity between groups. At Stage 6, the demographic parity gap measures the normalised difference in average recommendation list length between groups. Recommendation quality is assessed using Precision@10, Recall@10, and NDCG@10 on the held-out test set, computed separately for male and female users. An item is treated as relevant if its true rating is 4.0 or above, consistent with established convention in top-N evaluation (Cremonesi et al., 2010).
+
+3.6 Bias Mitigation Strategies
+
+Three strategies were selected to target different points across the pipeline, enabling direct assessment of whether the stage at which an intervention acts determines its effectiveness. The pre-processing strategy applies oversampling of female user ratings by a factor of two prior to training, augmenting the training distribution to reduce input-level demographic imbalance without modifying underlying rating values. The in-processing strategy enforces a minimum female representation threshold of 30% within each user's k-neighbourhood, directly targeting Stage 4 neighbourhood formation. Neighbours are selected by descending similarity, with the constraint relaxed where insufficient female neighbours are available. The post-processing strategy applies demographic parity re-ranking to final recommendation lists, classifying items by gender affinity based on the gender composition of their rater pool and reconstructing lists to achieve a 50% female-affinity item proportion. Each strategy is evaluated against the demographic parity gap and RMSE gap as fairness metrics, and overall RMSE and NDCG@10 as accuracy metrics.
+
+3.7 Ethical Considerations
+
+The MovieLens 1M dataset contains no personally identifiable information; all users are represented by anonymous integer identifiers. Demographic attributes are used solely as analytical variables for measuring group-level fairness disparities and are not inputs to the recommendation model. Ethical approval was obtained through Leeds Trinity University's standard research protocol. As the project uses only publicly available anonymised data and involves no human participants, it qualified for standard rather than full ethical review. The binary gender representation in the dataset is a known limitation, and findings are interpreted as specific to the demographic structure of MovieLens 1M rather than as broader claims about gender.
+
+
+References
+
+Arrieta, A. B., Díaz-Rodríguez, N., Del Ser, J., Bennetot, A., Tabik, S., Barbado, A., García, S., Gil-López, S., Molina, D., Benjamins, R., Chatila, R., & Herrera, F. (2020). Explainable artificial intelligence: Concepts, taxonomies, opportunities and challenges toward responsible AI. Information Fusion, 58, 82–115. https://doi.org/10.1016/j.inffus.2019.12.012
+
+Cremonesi, P., Koren, Y., & Turrin, R. (2010). Performance of recommender algorithms on top-N recommendation tasks. In Proceedings of the 4th ACM Conference on Recommender Systems (pp. 39–46). ACM. https://doi.org/10.1145/1864708.1864721
+
+European Parliament and Council of the European Union. (2024). Regulation (EU) 2024/1689 — Artificial Intelligence Act. Official Journal of the European Union. https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689
+
+Ekstrand, M. D., Tian, M., Azpiazu, I. M., Ekstrand, J. D., Anuyah, O., McNeill, D., & Pera, M. S. (2018). All the cool kids, how do they fit in? Popularity and demographic biases in recommender evaluation and effectiveness. In Proceedings of the 1st Conference on Fairness, Accountability and Transparency (pp. 172–186). PMLR. https://proceedings.mlr.press/v81/ekstrand18b.html
+
+Harper, F. M., & Konstan, J. A. (2015). The MovieLens datasets: History and context. ACM Transactions on Interactive Intelligent Systems, 5(4), 1–19. https://doi.org/10.1145/2827872
+
+Herlocker, J. L., Konstan, J. A., Terveen, L. G., & Riedl, J. T. (2004). Evaluating collaborative filtering recommender systems. ACM Transactions on Information Systems, 22(1), 5–53. https://doi.org/10.1145/963770.963772
+
+Hug, N. (2020). Surprise: A Python library for recommender systems. Journal of Open Source Software, 5(52), 2174. https://doi.org/10.21105/joss.02174
+
+Järvelin, K., & Kekäläinen, J. (2002). Cumulated gain-based evaluation of IR techniques. ACM Transactions on Information Systems, 20(4), 422–446. https://doi.org/10.1145/582415.582418
+
+Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix factorization techniques for recommender systems. Computer, 42(8), 30–37. https://doi.org/10.1109/MC.2009.263
+
+Sarwar, B., Karypis, G., Konstan, J., & Riedl, J. (2001). Item-based collaborative filtering recommendation algorithms. In Proceedings of the 10th International Conference on World Wide Web (pp. 285–295). ACM. https://doi.org/10.1145/371920.372071
+
+Settles, B. (2010). Active learning literature survey (Computer Sciences Technical Report 1648). University of Wisconsin–Madison.
